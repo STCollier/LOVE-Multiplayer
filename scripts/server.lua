@@ -33,20 +33,19 @@ function server:events()
         table.insert(self.peers, newID)
         print("Client ["..newID.."] connected")
 
+        client:send("peers", self.peers)
         client:send("yourID", newID)
+
+        --self.server:sendToAll("newPlayer", newID)
     end)
 
     self.server:on("playerPosition", function(data, client)
     	self.playerData[tostring(data.id)] = {
     		id = data.id,
     		username = data.username,
-    		x = x,
-    		y = y,
+    		x = data.x,
+    		y = data.y,
     	}
-
-    	for k, v in pairs(self.playerData) do
-    		print(v.id, v.x, v.y)
-    	end
 
     	client:send("playerData", self.playerData)
     end)

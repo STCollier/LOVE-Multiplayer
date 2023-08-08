@@ -1,7 +1,9 @@
 local sock = require "lib.sock"
 
 local client = {
-	id = -1
+	id = -1,
+	peers = {},
+	playerData = {}
 }
 
 function client:init(ip, port)
@@ -17,17 +19,19 @@ end
 
 function client:events()
 	self.client:on("connect", function(data, client)
-  
+  		print("You connected")
     end)
 
  	self.client:on("yourID", function(id, client)
    		self.id = id
  	end)
 
+ 	self.client:on("peers", function(peers, client)
+ 		self.peers = peers
+ 	end)
+
     self.client:on("playerData", function(data, client)
-    	for k, v in pairs(data) do
-    		print(v.id, v.x, v.y)
-    	end
+    	self.playerData = data
     end)
 end
 

@@ -15,6 +15,8 @@ function scene:load()
 	hostButton = Ui.Button("Host", love.graphics.getWidth()/2, love.graphics.getHeight()/2, 400, 75)
 	quitButton = Ui.Button("Quit", love.graphics.getWidth()/2, love.graphics.getHeight()/2+100, 400, 75)
 
+	usernameInput = Ui.TextInput("Username", love.graphics.getWidth()/2, love.graphics.getHeight()-125, (love.graphics.getWidth()/4)+100, 75)
+
 	-- JOIN
 	ipInput = Ui.TextInput("IP", love.graphics.getWidth()/2-225 - 5, love.graphics.getHeight()/2, 600, 75)
 	ipInput.text = socket.dns.toip(socket.dns.gethostname()) or "0.0.0.0"
@@ -37,6 +39,7 @@ function scene:update(dt)
 		joinButton:update()
 		hostButton:update()
 		quitButton:update()
+		usernameInput:update()
 
 		if joinButton.submitted then self.scene = "join" end
 		if hostButton.submitted then self.scene = "host" end
@@ -50,7 +53,6 @@ function scene:update(dt)
 		if (joinGameButton.submitted) then 
 			client:init(ipInput.text, tonumber(portInput.text))
 			mode = "client"
-			game:init()
 			self.scene = "loading"
 		end
 
@@ -64,7 +66,6 @@ function scene:update(dt)
 		if (hostGameButton.submitted) then 
 			server:init(ipInput.text, tonumber(portInput.text))
 			mode = "server"
-			game:init()
 			self.scene = "loading"
 		end
 
@@ -83,10 +84,16 @@ function scene:update(dt)
 	elseif self.scene == "loading" then
 		if mode == "server" then
 			server:update()
-			if not (server.clientID == -1) then self.scene = "game" end
+			if not (server.clientID == -1) then 
+				game:init(usernameInput.text)
+				self.scene = "game" 
+			end
 		elseif mode == "client" then
 			client:update()
-			if not (client.id == -1) then self.scene = "game" end
+			if not (client.id == -1) then 
+				game:init(usernameInput.text)
+				self.scene = "game" 
+			end
 		else
 			print("Invalid mode: must be server or client")
 			love.event.quit()
@@ -101,6 +108,7 @@ function scene:draw()
 		joinButton:draw()
 		hostButton:draw()
 		quitButton:draw()
+		usernameInput:draw()
 	elseif self.scene == "join" then
 		ipInput:draw()
 		portInput:draw()
@@ -125,6 +133,7 @@ end
 
 function scene:textInput(t)
 	if self.scene == "menu" then
+		usernameInput:handleInput(t)
 	elseif self.scene == "join" or self.scene == "host" then
 		ipInput:handleInput(t)
 		portInput:handleInput(t)
@@ -133,6 +142,7 @@ end
 
 function scene:keyPressed(key)
 	if self.scene == "menu" then
+		usernameInput:handleBackspace(key)
 	elseif self.scene == "join" or self.scene == "host" then
 		ipInput:handleBackspace(key)
 		portInput:handleBackspace(key)
