@@ -3,7 +3,7 @@ local sock = require "lib.sock"
 local server = {
 	clientID = -1,
 	peers = {},
-	playerData = {}
+	playerData = {},
 }
 
 function server:init(ip, port)
@@ -33,18 +33,24 @@ function server:events()
         table.insert(self.peers, newID)
         print("Client ["..newID.."] connected")
 
-        client:send("peers", self.peers)
         client:send("yourID", newID)
 
-        --self.server:sendToAll("newPlayer", newID)
+        client:send("peers", self.peers)
+        self.server:sendToAll("newPlayer", newID)
     end)
 
     self.server:on("playerPosition", function(data, client)
     	self.playerData[tostring(data.id)] = {
+    		tick = data.tick,
     		id = data.id,
     		username = data.username,
     		x = data.x,
     		y = data.y,
+			prevX = data.prevX,
+			prevY = data.prevY,
+			velX = data.velX,
+			velY = data.velY,
+			movement = data.movement
     	}
 
     	client:send("playerData", self.playerData)

@@ -1,8 +1,13 @@
 local scene = require "scripts.scene"
+local game = require "scripts.game"
+local socket = require "socket"
+local flux = require "lib.flux"
 
 function love.load()
-	players = {}
+	tickRate = 60
 	mode = nil
+
+    love.graphics.setDefaultFilter("nearest", "nearest")
 
 	love.graphics.setBackgroundColor(1, 1, 1, 1)
 	scene:load()
@@ -24,4 +29,10 @@ end
 
 function love.keypressed(key)
 	scene:keyPressed(key)
+end
+
+function beginContact(a, b)
+	if scene.scene == "game" then
+		game:handleCollisions(a, b)
+	end
 end

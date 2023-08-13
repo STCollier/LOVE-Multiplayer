@@ -3,7 +3,7 @@ local sock = require "lib.sock"
 local client = {
 	id = -1,
 	peers = {},
-	playerData = {}
+	playerData = {},
 }
 
 function client:init(ip, port)
@@ -26,12 +26,16 @@ function client:events()
    		self.id = id
  	end)
 
+    self.client:on("playerData", function(data, client)
+    	self.playerData = data
+    end)
+
  	self.client:on("peers", function(peers, client)
  		self.peers = peers
  	end)
 
-    self.client:on("playerData", function(data, client)
-    	self.playerData = data
+    self.client:on("newPlayer", function(id, client)
+    	if (id ~= self.id) then table.insert(self.peers, id) end
     end)
 end
 
