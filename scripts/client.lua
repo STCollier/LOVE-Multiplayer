@@ -4,6 +4,8 @@ local client = {
 	id = -1,
 	peers = {},
 	playerData = {},
+	spawnProjectile = false,
+	projectiles = {}
 }
 
 function client:init(ip, port)
@@ -36,6 +38,28 @@ function client:events()
 
     self.client:on("newPlayer", function(id, client)
     	if (id ~= self.id) then table.insert(self.peers, id) end
+    end)
+
+    self.client:on("spawnProjectile", function(p, client)
+    	self.spawnProjectile = true
+
+    	self.projectiles[p.id] = {
+			type = p.type,
+			id = p.id,
+			exploded = p.exploded,
+			x = p.x,
+			y = p.y
+    	}
+    end)
+
+    self.client:on("projectileData", function(data, client)
+    	self.projectiles[data.id] = {
+			type = data.type,
+			id = data.id,
+			exploded = data.exploded,
+			x = data.x,
+			y = data.y
+    	}
     end)
 end
 

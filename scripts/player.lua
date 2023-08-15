@@ -63,7 +63,7 @@ function Player:update(dt)
 	if mode == "client" then
 	    tick = tick + dt
 
-	    if tick >= 1/tickRate then -- 60 times per second
+	    if tick >= 1/tickRate then
 	    	tick = 0
 	    	currentTick = currentTick + 1
 

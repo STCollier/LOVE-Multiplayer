@@ -1,14 +1,16 @@
 local Player = require "scripts.player"
+local Projectile = require "scripts.projectile"
 local server = require "scripts.server"
 local client = require "scripts.client"
 local util = require "scripts.util"
-local flux = require "lib.flux"
+
+local t = 0
 
 local game = {
 	numPeers = 0,
 	peers = {},
-
-	players = {}
+	players = {},
+	projectiles = {}
 }
 
 function game:init(username)
@@ -36,7 +38,6 @@ function game:init(username)
 
 	self.numPeers = util.tableLength(self.peers)
 
-
 	floor = {} 
 	floor.body = love.physics.newBody(world, love.graphics.getWidth()/2, love.graphics.getHeight()-50)
 	floor.shape = love.physics.newRectangleShape(love.graphics.getWidth(), 100)
@@ -45,16 +46,14 @@ function game:init(username)
 end
 
 function game:update(dt)
-
 	world:update(dt)
 	you:update(dt)
-	flux.update(dt)
 
 	if mode == "server" then
 		self.peers = server.peers
 		for k, v in pairs(server.playerData) do
 			if (v.id ~= server.clientID) then
-				self.players[tostring(v.id)].body:setPosition(p.x, p.y)
+				self.players[tostring(v.id)].body:setPosition(v.x, v.y)
 			end
 
 			if (self.numPeers < util.tableLength(self.peers)) then
@@ -66,29 +65,87 @@ function game:update(dt)
 				self.numPeers = self.numPeers + 1
 			end
 		end
+
+		t = t + dt
+		if t >= 1 then
+			t = 0
+			local p = Projectile("grenede", util.timeNow(), love.math.random(0, love.graphics.getWidth()), -100)
+			server.server:sendToAll("spawnProjectile", { -- Send "spawnProjectile" trigger to client
+				type = p.type,
+				id = p.id,
+				exploded = p.exploded,
+				x = p.x,
+				y = p.y
+			})
+			server.projectiles[p.id] = { -- Update server projectile table
+				type = p.type,
+				id = p.id,
+				exploded = p.exploded,
+				x = p.x,
+				y = p.y
+			}
+
+			self.projectiles[p.id] = p
+		end
+
+		for k, v in pairs(self.projectiles) do
+			if not v.destroyed then
+				self.projectiles[k]:update(dt)
+			else
+				self.projectiles[k].body:destroy()
+				util.removeByKey(self.projectiles, k)
+				util.removeByKey(server.projectiles, k)
+			end
+		end
+		--print(util.tableLength(self.projectiles), util.tableLength(server.projectiles))
 	elseif mode == "client" then
 		self.peers = client.peers
 		for k, v in pairs(client.playerData) do
 			if (v.id ~= client.id) then
-				self.players[tostring(v.id)].body:setPosition(p.x, p.y)
-
+				self.players[tostring(v.id)].body:setPosition(v.x, v.y)
 			end
 		end
 
 		if (self.numPeers < util.tableLength(self.peers)) then
-			print("A new player joined!")
+			print("[CLIENT] recieved player joined")
 
 			for k, id in pairs(self.peers) do
 				if (id ~= client.id) then self.players[tostring(id)] = Player("Player", love.graphics.getWidth()/2, love.graphics.getHeight()/2) end
 			end
 			self.numPeers = self.numPeers + 1
 		end
+
+		if client.spawnProjectile then
+			print("[CLIENT] recieved spawn projectile")
+			for k, v in pairs(client.projectiles) do
+				self.projectiles[k] = Projectile(v.type, v.id, v.x, v.y)
+			end
+			client.spawnProjectile = false
+		end
+
+		for k, v in pairs(self.projectiles) do
+			self.projectiles[k].type = client.projectiles[k].type
+			self.projectiles[k].id = client.projectiles[k].id
+			self.projectiles[k].exploded = client.projectiles[k].exploded
+			self.projectiles[k].x = client.projectiles[k].x
+			self.projectiles[k].y = client.projectiles[k].y
+
+
+			if not v.exploded then
+				self.projectiles[k].body:setPosition(v.x, v.y)
+				self.projectiles[k]:update(dt)
+			else
+				self.projectiles[k].body:destroy()
+				util.removeByKey(self.projectiles, k)
+				util.removeByKey(client.projectiles, k)
+			end
+		end
 	end
 end
 
 function game:draw()
-
 	if mode == "server" then
+
 		for k, v in pairs(server.playerData) do
 			if (v.id == server.clientID) then
 				you:draw()
@@ -96,6 +153,12 @@ function game:draw()
 				if (v.id ~= server.clientID) then
 					self.players[tostring(v.id)]:draw(v.username)
 				end
+			end
+		end
+
+		for k, v in pairs(self.projectiles) do
+			if not v.destroyed then
+				self.projectiles[k]:draw()
 			end
 		end
 	elseif mode == "client" then
@@ -106,6 +169,12 @@ function game:draw()
 				if (v.id ~= client.id) then
 					self.players[tostring(v.id)]:draw(v.username)
 				end
+			end
+		end
+
+		for k, v in pairs(self.projectiles) do
+			if not v.exploded then
+				self.projectiles[k]:draw()
 			end
 		end
 	end

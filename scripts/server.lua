@@ -1,9 +1,13 @@
 local sock = require "lib.sock"
 
+local tick = 0
+
 local server = {
 	clientID = -1,
 	peers = {},
 	playerData = {},
+	projectiles = {},
+	spawnProjectile = false
 }
 
 function server:init(ip, port)
@@ -16,7 +20,7 @@ function server:init(ip, port)
 	server:events()
 end
 
-function server:update()
+function server:update(dt)
 	self.server:update()
 end
 

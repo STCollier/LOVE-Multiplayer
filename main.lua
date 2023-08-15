@@ -1,7 +1,6 @@
 local scene = require "scripts.scene"
 local game = require "scripts.game"
 local socket = require "socket"
-local flux = require "lib.flux"
 
 function love.load()
 	tickRate = 60

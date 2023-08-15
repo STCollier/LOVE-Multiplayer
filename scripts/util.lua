@@ -13,4 +13,10 @@ function util.tableLength(T)
     return count
 end
 
+function util.removeByKey(table, key)
+    local element = table[key]
+    table[key] = nil
+    return element
+end
+
 return util
