@@ -19,4 +19,8 @@ function util.removeByKey(table, key)
     return element
 end
 
+function util.isColliding(a, b, _a, _b) 
+    return a:getUserData() == _a and b:getUserData() == _b or a:getUserData() == _b and b:getUserData() == _a
+end
+
 return util

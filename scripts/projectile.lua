@@ -31,21 +31,26 @@ local Projectile = Class{
 function Projectile:update(dt)
 	if self.type == "bomb" then
 	elseif self.type == "grenede" then
-		self.tick = self.tick + dt
+		if mode == "server" then
+			self.tick = self.tick + dt
 
-	    if self.tick >= 1 and self.timer > 0 then
-	    	self.tick = 0
-	    	self.timer = self.timer - 1
-	    end
+		    if self.tick >= 1 and self.timer > 0 then
+		    	self.tick = 0
+		    	self.timer = self.timer - 1
+		    end
+		end
 
-	    if self.timer == 0 then 
-			server.server:sendToAll("projectileData", {
-				type = self.type,
-				id = self.id,
-				exploded = true,
-				x = self.body:getX(),
-				y = self.body:getY()
-			})
+	    if self.timer == 0 then
+	    	if mode == "server" then
+				server.server:sendToAll("projectileData", {
+					type = self.type,
+					id = self.id,
+					exploded = true,
+					timer = 0,
+					x = self.body:getX(),
+					y = self.body:getY()
+				})
+			end
 	    	self.destroyed = true
 	    	self.body:destroy()
 	    end
@@ -60,6 +65,7 @@ function Projectile:update(dt)
 				type = self.type,
 				id = self.id,
 				exploded = false,
+				timer = self.timer,
 				x = self.body:getX(),
 				y = self.body:getY()
 			})

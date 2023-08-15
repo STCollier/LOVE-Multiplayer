@@ -74,6 +74,7 @@ function game:update(dt)
 				type = p.type,
 				id = p.id,
 				exploded = p.exploded,
+				timer = p.timer,
 				x = p.x,
 				y = p.y
 			})
@@ -81,6 +82,7 @@ function game:update(dt)
 				type = p.type,
 				id = p.id,
 				exploded = p.exploded,
+				timer = p.timer,
 				x = p.x,
 				y = p.y
 			}
@@ -92,7 +94,6 @@ function game:update(dt)
 			if not v.destroyed then
 				self.projectiles[k]:update(dt)
 			else
-				self.projectiles[k].body:destroy()
 				util.removeByKey(self.projectiles, k)
 				util.removeByKey(server.projectiles, k)
 			end
@@ -116,7 +117,7 @@ function game:update(dt)
 		end
 
 		if client.spawnProjectile then
-			print("[CLIENT] recieved spawn projectile")
+			--print("[CLIENT] recieved spawn projectile")
 			for k, v in pairs(client.projectiles) do
 				self.projectiles[k] = Projectile(v.type, v.id, v.x, v.y)
 			end
@@ -124,20 +125,22 @@ function game:update(dt)
 		end
 
 		for k, v in pairs(self.projectiles) do
+			--print(util.tableLength(self.projectiles))
 			self.projectiles[k].type = client.projectiles[k].type
 			self.projectiles[k].id = client.projectiles[k].id
 			self.projectiles[k].exploded = client.projectiles[k].exploded
+			self.projectiles[k].timer = client.projectiles[k].timer
 			self.projectiles[k].x = client.projectiles[k].x
 			self.projectiles[k].y = client.projectiles[k].y
-
 
 			if not v.exploded then
 				self.projectiles[k].body:setPosition(v.x, v.y)
 				self.projectiles[k]:update(dt)
 			else
-				self.projectiles[k].body:destroy()
-				util.removeByKey(self.projectiles, k)
-				util.removeByKey(client.projectiles, k)
+				print(self.projectiles[k].body)
+				--util.removeByKey(self.projectiles, k)
+				--util.removeByKey(client.projectiles, k)
+				print("[CLIENT] destroyed projectile")
 			end
 		end
 	end
@@ -173,9 +176,9 @@ function game:draw()
 		end
 
 		for k, v in pairs(self.projectiles) do
-			if not v.exploded then
+			--if not v.exploded then
 				self.projectiles[k]:draw()
-			end
+			--end
 		end
 	end
 

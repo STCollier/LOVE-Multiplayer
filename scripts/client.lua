@@ -47,6 +47,7 @@ function client:events()
 			type = p.type,
 			id = p.id,
 			exploded = p.exploded,
+			timer = p.timer,
 			x = p.x,
 			y = p.y
     	}
@@ -57,6 +58,7 @@ function client:events()
 			type = data.type,
 			id = data.id,
 			exploded = data.exploded,
+			timer = data.timer,
 			x = data.x,
 			y = data.y
     	}

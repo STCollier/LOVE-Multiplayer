@@ -2,6 +2,7 @@ local Class = require "lib.class"
 
 local client = require "scripts.client"
 local server = require "scripts.server"
+local util = require "scripts.util"
 
 local nametagFont = love.graphics.newFont(30)
 
@@ -122,7 +123,7 @@ function Player:draw(username)
 end
 
 function Player:handleCollisions(a, b)
-    if a:getUserData() == "Player" and b:getUserData() == "Solids" or a:getUserData() == "Solids" and b:getUserData() == "Player" then
+    if util.isColliding(a, b, "Player", "Solids") or util.isColliding(a, b, "Player", "Grenede") then
         self.jumps = 1
     end
 end
